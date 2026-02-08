@@ -276,8 +276,8 @@
 
     <div class="sort-controls">
       <span class="sort-label">並び順:</span>
-      <button class="sort-btn active" onclick="setSortMode('default')">デフォルト</button>
-      <button class="sort-btn" onclick="setSortMode('good')">Good数順</button>
+      <button class="sort-btn active" onclick="setSortMode('good')">Good数順</button>
+      <button class="sort-btn" onclick="setSortMode('id')">ID順</button>
     </div>
 
     <div id="stats" class="stats" style="display: none;">
@@ -303,7 +303,7 @@
   <script>
     let allData = [];
     let filteredData = [];
-    let currentSortMode = 'default';
+    let currentSortMode = 'good'; // デフォルトをGood数順に変更
     let votedQuestions = JSON.parse(localStorage.getItem('votedQuestions') || '{}');
     let localGoodCounts = JSON.parse(localStorage.getItem('localGoodCounts') || '{}');
 
@@ -317,6 +317,19 @@
     }
 
     function sortAndRenderData() {
+      // 検索フィルタを適用
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      if (searchTerm) {
+        filteredData = allData.filter(item => {
+          return Object.values(item).some(value =>
+            String(value).toLowerCase().includes(searchTerm)
+          );
+        });
+      } else {
+        filteredData = [...allData];
+      }
+
+      // ソートを適用
       if (currentSortMode === 'good') {
         // Good列（通常は3番目か4番目のカラム）で降順ソート
         filteredData.sort((a, b) => {
@@ -328,20 +341,37 @@
             goodKey = keys[2];
           }
 
-          const aValue = parseInt(a[goodKey] || '0', 10);
-          const bValue = parseInt(b[goodKey] || '0', 10);
+          // localGoodCountsの値を優先的に使用
+          const aId = getQuestionId(a);
+          const bId = getQuestionId(b);
+          const aValue = localGoodCounts[aId] !== undefined
+            ? localGoodCounts[aId]
+            : parseInt(a[goodKey] || '0', 10);
+          const bValue = localGoodCounts[bId] !== undefined
+            ? localGoodCounts[bId]
+            : parseInt(b[goodKey] || '0', 10);
+
           return bValue - aValue; // 降順
         });
-      } else {
-        // デフォルト順（元の順序）
-        filteredData = [...allData].filter(item => {
-          const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-          if (!searchTerm) return true;
-          return Object.values(item).some(value =>
-            String(value).toLowerCase().includes(searchTerm)
-          );
+      } else if (currentSortMode === 'id') {
+        // ID順（A列）でソート
+        filteredData.sort((a, b) => {
+          const aId = getQuestionId(a);
+          const bId = getQuestionId(b);
+
+          // 数値として比較を試みる
+          const aNum = parseInt(aId, 10);
+          const bNum = parseInt(bId, 10);
+
+          if (!isNaN(aNum) && !isNaN(bNum)) {
+            return aNum - bNum; // 数値の昇順
+          }
+
+          // 文字列として比較
+          return aId.localeCompare(bId); // 文字列の昇順
         });
       }
+
       renderData();
     }
 
