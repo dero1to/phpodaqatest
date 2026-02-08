@@ -29,6 +29,19 @@ export async function onRequest(context) {
       });
     }
 
+    // A列のIDバリデーション
+    if (!questionId || questionId.startsWith('unknown_')) {
+      return new Response(JSON.stringify({
+        error: 'Invalid question ID'
+      }), {
+        status: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
+    }
+
     const SHEET_ID = env.GOOGLE_SHEET_ID;
     const API_KEY = env.GOOGLE_API_KEY;
 

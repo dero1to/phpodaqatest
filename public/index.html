@@ -441,6 +441,7 @@
           <button class="good-btn ${isVoted ? 'voted' : ''}"
                   data-question-id="${escapeHtml(questionId)}"
                   data-row-index="${index}"
+                  data-original-row="${escapeHtml(JSON.stringify(row))}"
                   onclick="handleGoodClick(this)"
                   ${isVoted ? 'disabled' : ''}>
             👍 ${currentGoodCount}
@@ -454,17 +455,27 @@
     }
 
     function getQuestionId(row) {
-      // 質問のユニークIDを生成（B列の値をベースに）
+      // A列（最初のカラム）のユニークIDを使用
       const keys = Object.keys(row);
-      const questionText = keys.length >= 2 ? row[keys[1]] : '';
-      return btoa(encodeURIComponent(questionText)).replace(/[^a-zA-Z0-9]/g, '').substring(0, 20);
+      if (keys.length > 0) {
+        return row[keys[0]]; // A列の値をそのままIDとして使用
+      }
+      // A列がない場合のフォールバック
+      return 'unknown_' + Math.random().toString(36).substr(2, 9);
     }
 
     async function handleGoodClick(button) {
       const questionId = button.dataset.questionId;
       const rowIndex = parseInt(button.dataset.rowIndex, 10);
+      const originalRow = JSON.parse(button.dataset.originalRow);
 
       if (votedQuestions[questionId]) {
+        return;
+      }
+
+      // A列のIDが存在することを確認
+      if (!questionId || questionId === 'unknown_' || questionId.startsWith('unknown_')) {
+        alert('この質問にはIDが設定されていません');
         return;
       }
 
