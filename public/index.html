@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PHPカンファレンス小田原2026 - Q&A</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sen:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Noto Sans JP', 'Sen', sans-serif;
+      line-height: 1.6;
+      color: #474747;
+      background: linear-gradient(135deg, #FFEDF2 0%, #FFFAF0 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: #FFFFFF;
+      border-radius: 24px;
+      box-shadow: 0 8px 32px rgba(252, 97, 141, 0.1);
+      padding: 40px;
+    }
+
+    h1 {
+      font-family: 'Sen', sans-serif;
+      color: #FC618D;
+      margin-bottom: 32px;
+      text-align: center;
+      font-size: 2.5rem;
+      font-weight: 700;
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 200px;
+      padding: 12px 20px;
+      border: 2px solid #FFEDF2;
+      border-radius: 999px;
+      font-size: 16px;
+      font-family: 'Noto Sans JP', sans-serif;
+      transition: all 0.3s ease;
+    }
+
+    .search-box:focus {
+      outline: none;
+      border-color: #FC618D;
+      box-shadow: 0 0 0 3px rgba(252, 97, 141, 0.1);
+    }
+
+    .btn {
+      padding: 12px 32px;
+      background: #FC618D;
+      color: white;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      font-family: 'Sen', sans-serif;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(252, 97, 141, 0.2);
+    }
+
+    .btn:hover {
+      background: #FA4A7E;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(252, 97, 141, 0.3);
+    }
+
+    .loading {
+      text-align: center;
+      padding: 60px;
+      font-size: 18px;
+      color: #474747;
+      font-weight: 500;
+    }
+
+    .error {
+      background: #FFEDF2;
+      color: #FC618D;
+      padding: 20px;
+      border-radius: 16px;
+      margin-bottom: 24px;
+      border: 2px solid #FC618D;
+      font-weight: 500;
+    }
+
+    .stats {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+
+    .stat-card {
+      flex: 1;
+      min-width: 150px;
+      background: #FFEDF2;
+      padding: 20px;
+      border-radius: 16px;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #FC618D;
+      font-family: 'Sen', sans-serif;
+    }
+
+    .stat-label {
+      color: #474747;
+      font-size: 14px;
+      margin-top: 8px;
+      font-weight: 500;
+    }
+
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 16px;
+      text-align: left;
+      border-bottom: 1px solid #FFEDF2;
+    }
+
+    th {
+      background: #FFFAF0;
+      font-weight: 700;
+      color: #FC618D;
+      position: sticky;
+      top: 0;
+      font-family: 'Sen', sans-serif;
+    }
+
+    tr:hover {
+      background: #FFFAF0;
+    }
+
+    .no-data {
+      text-align: center;
+      padding: 60px;
+      color: #474747;
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+.sort-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .sort-label {
+      font-weight: 600;
+      color: #474747;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+
+    .sort-btn {
+      padding: 8px 20px;
+      background: #FFFAF0;
+      color: #474747;
+      border: 2px solid transparent;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      font-family: 'Sen', sans-serif;
+      transition: all 0.3s ease;
+    }
+
+    .sort-btn:hover {
+      border-color: #FC618D;
+    }
+
+    .sort-btn.active {
+      background: #FC618D;
+      color: white;
+      box-shadow: 0 4px 12px rgba(252, 97, 141, 0.2);
+    }
+
+    .good-btn {
+      background: #FFFFFF;
+      border: 2px solid #FFEDF2;
+      color: #FC618D;
+      padding: 6px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      min-width: 60px;
+      justify-content: center;
+    }
+
+    .good-btn:hover:not(:disabled) {
+      background: #FFEDF2;
+      border-color: #FC618D;
+      transform: scale(1.05);
+    }
+
+    .good-btn:active:not(:disabled) {
+      transform: scale(0.95);
+    }
+
+    .good-btn:disabled {
+      background: #F0F0F0;
+      border-color: #E0E0E0;
+      color: #999;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    .good-btn.voted {
+      background: #FC618D;
+      color: white;
+      border-color: #FC618D;
+    }
+
+    @keyframes voteAnimation {
+      0% { transform: scale(1) rotate(0deg); }
+      25% { transform: scale(1.2) rotate(5deg); }
+      50% { transform: scale(1.1) rotate(-5deg); }
+      75% { transform: scale(1.15) rotate(3deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+
+    .good-btn.animating {
+      animation: voteAnimation 0.5s ease-in-out;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎤 PHPカンファレンス小田原2026 Q&A</h1>
+
+    <div class="controls">
+      <input type="text" id="searchInput" class="search-box" placeholder="検索...">
+      <button class="btn" onclick="loadData()">データを更新</button>
+    </div>
+
+    <div class="sort-controls">
+      <span class="sort-label">並び順:</span>
+      <button class="sort-btn active" onclick="setSortMode('default')">デフォルト</button>
+      <button class="sort-btn" onclick="setSortMode('good')">Good数順</button>
+    </div>
+
+    <div id="stats" class="stats" style="display: none;">
+      <div class="stat-card">
+        <div class="stat-value" id="totalRecords">0</div>
+        <div class="stat-label">有効な質問数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="filteredRecords">0</div>
+        <div class="stat-label">表示中</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="lastUpdated">-</div>
+        <div class="stat-label">最終更新</div>
+      </div>
+    </div>
+
+    <div id="loading" class="loading">データを読み込み中...</div>
+    <div id="error" class="error" style="display: none;"></div>
+    <div id="dataContainer"></div>
+  </div>
+
+  <script>
+    let allData = [];
+    let filteredData = [];
+    let currentSortMode = 'default';
+    let votedQuestions = JSON.parse(localStorage.getItem('votedQuestions') || '{}');
+    let localGoodCounts = JSON.parse(localStorage.getItem('localGoodCounts') || '{}');
+
+    function setSortMode(mode) {
+      currentSortMode = mode;
+      document.querySelectorAll('.sort-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      sortAndRenderData();
+    }
+
+    function sortAndRenderData() {
+      if (currentSortMode === 'good') {
+        // Good列（通常は3番目か4番目のカラム）で降順ソート
+        filteredData.sort((a, b) => {
+          const keys = Object.keys(a);
+          // Good列を探す（"Good"という名前のカラムを探す）
+          let goodKey = keys.find(key => key.toLowerCase().includes('good'));
+          if (!goodKey && keys.length >= 3) {
+            // Goodという名前のカラムがない場合、3番目のカラムと仮定
+            goodKey = keys[2];
+          }
+
+          const aValue = parseInt(a[goodKey] || '0', 10);
+          const bValue = parseInt(b[goodKey] || '0', 10);
+          return bValue - aValue; // 降順
+        });
+      } else {
+        // デフォルト順（元の順序）
+        filteredData = [...allData].filter(item => {
+          const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+          if (!searchTerm) return true;
+          return Object.values(item).some(value =>
+            String(value).toLowerCase().includes(searchTerm)
+          );
+        });
+      }
+      renderData();
+    }
+
+    async function loadData() {
+      const loading = document.getElementById('loading');
+      const error = document.getElementById('error');
+      const container = document.getElementById('dataContainer');
+      const stats = document.getElementById('stats');
+
+      loading.style.display = 'block';
+      error.style.display = 'none';
+      container.innerHTML = '';
+      stats.style.display = 'none';
+
+      try {
+        const response = await fetch('/api/sheets?t=' + Date.now());
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        if (result.error) {
+          throw new Error(result.error);
+        }
+
+        allData = result.data || [];
+        filteredData = [...allData];
+
+        updateStats();
+        sortAndRenderData();
+
+        loading.style.display = 'none';
+        stats.style.display = 'flex';
+
+      } catch (err) {
+        loading.style.display = 'none';
+        error.style.display = 'block';
+        error.textContent = `エラー: ${err.message}`;
+        console.error('Error loading data:', err);
+      }
+    }
+
+    function updateStats() {
+      document.getElementById('totalRecords').textContent = allData.length;
+      document.getElementById('filteredRecords').textContent = filteredData.length;
+      document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString('ja-JP');
+    }
+
+    function renderData() {
+      const container = document.getElementById('dataContainer');
+
+      if (filteredData.length === 0) {
+        container.innerHTML = '<div class="no-data">データがありません</div>';
+        return;
+      }
+
+      renderTableView(container);
+    }
+
+    function renderTableView(container) {
+      const headers = Object.keys(filteredData[0]);
+
+      let html = '<div class="table-container"><table><thead><tr>';
+      headers.forEach(header => {
+        html += `<th>${escapeHtml(header)}</th>`;
+      });
+      html += '<th>アクション</th>';
+      html += '</tr></thead><tbody>';
+
+      filteredData.forEach((row, index) => {
+        html += '<tr>';
+        headers.forEach((header, colIndex) => {
+          let value = row[header] || '';
+
+          // Good列の場合、ローカルの値を優先
+          if (header.toLowerCase().includes('good') || colIndex === 2) {
+            const questionId = getQuestionId(row);
+            if (localGoodCounts[questionId] !== undefined) {
+              value = localGoodCounts[questionId];
+            }
+          }
+
+          html += `<td>${escapeHtml(value)}</td>`;
+        });
+
+        // Goodボタンを追加
+        const questionId = getQuestionId(row);
+        const isVoted = votedQuestions[questionId] || false;
+        const goodKey = headers.find(key => key.toLowerCase().includes('good')) || headers[2];
+        const currentGoodCount = localGoodCounts[questionId] !== undefined
+          ? localGoodCounts[questionId]
+          : parseInt(row[goodKey] || '0', 10);
+
+        html += `<td>
+          <button class="good-btn ${isVoted ? 'voted' : ''}"
+                  data-question-id="${escapeHtml(questionId)}"
+                  data-row-index="${index}"
+                  onclick="handleGoodClick(this)"
+                  ${isVoted ? 'disabled' : ''}>
+            👍 ${currentGoodCount}
+          </button>
+        </td>`;
+        html += '</tr>';
+      });
+
+      html += '</tbody></table></div>';
+      container.innerHTML = html;
+    }
+
+    function getQuestionId(row) {
+      // 質問のユニークIDを生成（B列の値をベースに）
+      const keys = Object.keys(row);
+      const questionText = keys.length >= 2 ? row[keys[1]] : '';
+      return btoa(encodeURIComponent(questionText)).replace(/[^a-zA-Z0-9]/g, '').substring(0, 20);
+    }
+
+    async function handleGoodClick(button) {
+      const questionId = button.dataset.questionId;
+      const rowIndex = parseInt(button.dataset.rowIndex, 10);
+
+      if (votedQuestions[questionId]) {
+        return;
+      }
+
+      // アニメーション開始
+      button.classList.add('animating');
+
+      // ローカルで即座に更新
+      const currentCount = parseInt(button.textContent.replace('👍', '').trim(), 10);
+      const newCount = currentCount + 1;
+      button.textContent = `👍 ${newCount}`;
+      button.classList.add('voted');
+      button.disabled = true;
+
+      // ローカルストレージに保存
+      votedQuestions[questionId] = true;
+      localGoodCounts[questionId] = newCount;
+      localStorage.setItem('votedQuestions', JSON.stringify(votedQuestions));
+      localStorage.setItem('localGoodCounts', JSON.stringify(localGoodCounts));
+
+      // データ配列も更新
+      const row = filteredData[rowIndex];
+      const headers = Object.keys(row);
+      const goodKey = headers.find(key => key.toLowerCase().includes('good')) || headers[2];
+      if (goodKey) {
+        row[goodKey] = newCount.toString();
+
+        // allDataも更新
+        const originalRow = allData.find(r => getQuestionId(r) === questionId);
+        if (originalRow) {
+          originalRow[goodKey] = newCount.toString();
+        }
+      }
+
+      // サーバーに送信（バックグラウンドで）
+      try {
+        await fetch('/api/vote', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            questionId: questionId,
+            rowIndex: rowIndex
+          })
+        });
+      } catch (error) {
+        console.error('Vote submission error:', error);
+        // エラーがあってもローカルの状態は維持
+      }
+
+      // アニメーション終了
+      setTimeout(() => {
+        button.classList.remove('animating');
+      }, 500);
+
+      // ソートを更新
+      if (currentSortMode === 'good') {
+        setTimeout(() => {
+          sortAndRenderData();
+        }, 600);
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function filterData(searchTerm) {
+      if (!searchTerm) {
+        filteredData = [...allData];
+      } else {
+        const term = searchTerm.toLowerCase();
+        filteredData = allData.filter(row => {
+          return Object.values(row).some(value =>
+            String(value).toLowerCase().includes(term)
+          );
+        });
+      }
+
+      updateStats();
+      sortAndRenderData();
+    }
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      filterData(e.target.value);
+    });
+
+    window.addEventListener('load', loadData);
+  </script>
+</body>
+</html>
